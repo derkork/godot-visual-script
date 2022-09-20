@@ -30,9 +30,8 @@
 
 #include "visual_script_flow_control.h"
 
-#include "core/config/project_settings.h"
-#include "core/io/resource_loader.h"
-#include "core/os/keyboard.h"
+#include <godot_cpp/classes/project_settings.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 
 //////////////////////////////////////////
 ////////////////RETURN////////////////////
@@ -127,7 +126,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return true; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (with_value) {
 			*p_working_mem = *p_inputs[0];
 			return STEP_EXIT_FUNCTION_BIT;
@@ -220,7 +219,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return true; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (p_start_mode == START_MODE_CONTINUE_SEQUENCE) {
 			return 2;
 		} else if (p_inputs[0]->operator bool()) {
@@ -300,7 +299,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return true; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		bool keep_going = p_inputs[0]->operator bool();
 
 		if (keep_going) {
@@ -383,14 +382,14 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return true; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (p_start_mode == START_MODE_BEGIN_SEQUENCE) {
 			p_working_mem[0] = *p_inputs[0];
 			bool valid;
 			bool can_iter = p_inputs[0]->iter_init(p_working_mem[1], valid);
 
 			if (!valid) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+				r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 				r_error_str = RTR("Input type not iterable:") + " " + Variant::get_type_name(p_inputs[0]->get_type());
 				return 0;
 			}
@@ -402,7 +401,7 @@ public:
 			*p_outputs[0] = p_working_mem[0].iter_get(p_working_mem[1], valid);
 
 			if (!valid) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+				r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 				r_error_str = RTR("Iterator became invalid");
 				return 0;
 			}
@@ -413,7 +412,7 @@ public:
 			bool can_iter = p_working_mem[0].iter_next(p_working_mem[1], valid);
 
 			if (!valid) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+				r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 				r_error_str = RTR("Iterator became invalid:") + " " + Variant::get_type_name(p_inputs[0]->get_type());
 				return 0;
 			}
@@ -425,7 +424,7 @@ public:
 			*p_outputs[0] = p_working_mem[0].iter_get(p_working_mem[1], valid);
 
 			if (!valid) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+				r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 				r_error_str = RTR("Iterator became invalid");
 				return 0;
 			}
@@ -516,7 +515,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return true; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (p_start_mode == START_MODE_BEGIN_SEQUENCE) {
 			p_working_mem[0] = 0;
 		}
@@ -603,7 +602,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return false; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (p_start_mode == START_MODE_CONTINUE_SEQUENCE) {
 			return case_count; //exit
 		}
@@ -782,13 +781,13 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return false; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		Object *obj = *p_inputs[0];
 
 		*p_outputs[0] = Variant();
 
 		if (!obj) {
-			r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+			r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 			r_error_str = "Instance is null";
 			return 0;
 		}
@@ -805,7 +804,7 @@ public:
 			}
 			Ref<Script> cast_script = ResourceCache::get_ref(script);
 			if (!cast_script.is_valid()) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+				r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 				r_error_str = "Script path is not a script: " + script;
 				return 1;
 			}

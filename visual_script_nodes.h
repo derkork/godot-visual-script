@@ -31,15 +31,10 @@
 #ifndef VISUAL_SCRIPT_NODES_H
 #define VISUAL_SCRIPT_NODES_H
 
-#ifdef GDEXTENSION
 #include <godot/gdnative_interface.h>
-using namespace godot;
+#include <godot_cpp/classes/multiplayer_api.hpp>
 
-#else
-#include "core/object/gdvirtual.gen.inc"
-#include "core/object/script_language.h"
-#include "scene/main/multiplayer_api.h"
-#endif
+using namespace godot;
 
 #include "visual_script.h"
 
@@ -760,30 +755,6 @@ class VisualScriptCustomNode : public VisualScriptNode {
 protected:
 	static void _bind_methods();
 	friend class VisualScriptNodeInstanceCustomNode;
-	GDVIRTUAL0RC(int, _get_output_sequence_port_count)
-	GDVIRTUAL0RC(bool, _has_input_sequence_port)
-	GDVIRTUAL1RC(String, _get_output_sequence_port_text, int)
-
-	GDVIRTUAL0RC(int, _get_input_value_port_count)
-	GDVIRTUAL1RC(int, _get_input_value_port_type, int)
-	GDVIRTUAL1RC(String, _get_input_value_port_name, int)
-	GDVIRTUAL1RC(int, _get_input_value_port_hint, int)
-	GDVIRTUAL1RC(String, _get_input_value_port_hint_string, int)
-
-	GDVIRTUAL0RC(int, _get_output_value_port_count)
-	GDVIRTUAL1RC(int, _get_output_value_port_type, int)
-	GDVIRTUAL1RC(String, _get_output_value_port_name, int)
-	GDVIRTUAL1RC(int, _get_output_value_port_hint, int)
-	GDVIRTUAL1RC(String, _get_output_value_port_hint_string, int)
-
-	GDVIRTUAL0RC(String, _get_caption)
-	GDVIRTUAL0RC(String, _get_text)
-	GDVIRTUAL0RC(String, _get_category)
-
-	GDVIRTUAL0RC(int, _get_working_memory_size)
-
-	GDVIRTUAL4RC(Variant, _step, Array, Array, int, Array)
-
 public:
 	enum StartMode { //replicated for step
 		START_MODE_BEGIN_SEQUENCE,

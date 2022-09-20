@@ -1,0 +1,7 @@
+.idea/
+cmake-build-debug/
+out.txt
+*.dblite
+
+
+

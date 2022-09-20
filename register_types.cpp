@@ -30,18 +30,12 @@
 
 #include "register_types.h"
 
-#ifdef GDEXTENSION
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
 using namespace godot;
 
-#else
-#include "modules/register_module_types.h"
-#include "core/config/engine.h"
-#include "core/io/resource_loader.h"
-#endif
 
 #include "visual_script.h"
 #include "visual_script_builtin_funcs.h"
@@ -64,59 +58,61 @@ void initialize_visual_script_module(ModuleInitializationLevel p_level) {
 		//script_language_gd->init();
 		ScriptServer::register_language(visual_script_language);
 
-		GDREGISTER_CLASS(VisualScript);
-		GDREGISTER_ABSTRACT_CLASS(VisualScriptNode);
-		GDREGISTER_CLASS(VisualScriptFunctionState);
-		GDREGISTER_CLASS(VisualScriptFunction);
-		GDREGISTER_ABSTRACT_CLASS(VisualScriptLists);
-		GDREGISTER_CLASS(VisualScriptComposeArray);
-		GDREGISTER_CLASS(VisualScriptOperator);
-		GDREGISTER_CLASS(VisualScriptVariableSet);
-		GDREGISTER_CLASS(VisualScriptVariableGet);
-		GDREGISTER_CLASS(VisualScriptConstant);
-		GDREGISTER_CLASS(VisualScriptIndexGet);
-		GDREGISTER_CLASS(VisualScriptIndexSet);
-		GDREGISTER_CLASS(VisualScriptGlobalConstant);
-		GDREGISTER_CLASS(VisualScriptClassConstant);
-		GDREGISTER_CLASS(VisualScriptMathConstant);
-		GDREGISTER_CLASS(VisualScriptBasicTypeConstant);
-		GDREGISTER_CLASS(VisualScriptEngineSingleton);
-		GDREGISTER_CLASS(VisualScriptSceneNode);
-		GDREGISTER_CLASS(VisualScriptSceneTree);
-		GDREGISTER_CLASS(VisualScriptResourcePath);
-		GDREGISTER_CLASS(VisualScriptSelf);
-		GDREGISTER_CLASS(VisualScriptCustomNode);
-		GDREGISTER_CLASS(VisualScriptSubCall);
-		GDREGISTER_CLASS(VisualScriptComment);
-		GDREGISTER_CLASS(VisualScriptConstructor);
-		GDREGISTER_CLASS(VisualScriptLocalVar);
-		GDREGISTER_CLASS(VisualScriptLocalVarSet);
-		GDREGISTER_CLASS(VisualScriptInputAction);
-		GDREGISTER_CLASS(VisualScriptDeconstruct);
-		GDREGISTER_CLASS(VisualScriptPreload);
-		GDREGISTER_CLASS(VisualScriptTypeCast);
 
-		GDREGISTER_CLASS(VisualScriptFunctionCall);
-		GDREGISTER_CLASS(VisualScriptPropertySet);
-		GDREGISTER_CLASS(VisualScriptPropertyGet);
+
+        ClassDB::register_class<VisualScript>();
+		ClassDB::register_class<VisualScriptNode>();
+		ClassDB::register_class<VisualScriptFunctionState>();
+		ClassDB::register_class<VisualScriptFunction>();
+		ClassDB::register_class<VisualScriptLists>();
+		ClassDB::register_class<VisualScriptComposeArray>();
+		ClassDB::register_class<VisualScriptOperator>();
+		ClassDB::register_class<VisualScriptVariableSet>();
+		ClassDB::register_class<VisualScriptVariableGet>();
+		ClassDB::register_class<VisualScriptConstant>();
+		ClassDB::register_class<VisualScriptIndexGet>();
+		ClassDB::register_class<VisualScriptIndexSet>();
+		ClassDB::register_class<VisualScriptGlobalConstant>();
+		ClassDB::register_class<VisualScriptClassConstant>();
+		ClassDB::register_class<VisualScriptMathConstant>();
+		ClassDB::register_class<VisualScriptBasicTypeConstant>();
+		ClassDB::register_class<VisualScriptEngineSingleton>();
+		ClassDB::register_class<VisualScriptSceneNode>();
+		ClassDB::register_class<VisualScriptSceneTree>();
+		ClassDB::register_class<VisualScriptResourcePath>();
+		ClassDB::register_class<VisualScriptSelf>();
+		ClassDB::register_class<VisualScriptCustomNode>();
+		ClassDB::register_class<VisualScriptSubCall>();
+		ClassDB::register_class<VisualScriptComment>();
+		ClassDB::register_class<VisualScriptConstructor>();
+		ClassDB::register_class<VisualScriptLocalVar>();
+		ClassDB::register_class<VisualScriptLocalVarSet>();
+		ClassDB::register_class<VisualScriptInputAction>();
+		ClassDB::register_class<VisualScriptDeconstruct>();
+		ClassDB::register_class<VisualScriptPreload>();
+		ClassDB::register_class<VisualScriptTypeCast>();
+
+		ClassDB::register_class<VisualScriptFunctionCall>();
+		ClassDB::register_class<VisualScriptPropertySet>();
+		ClassDB::register_class<VisualScriptPropertyGet>();
 		//ClassDB::register_type<VisualScriptScriptCall>();
-		GDREGISTER_CLASS(VisualScriptEmitSignal);
+		ClassDB::register_class<VisualScriptEmitSignal>();
 
-		GDREGISTER_CLASS(VisualScriptReturn);
-		GDREGISTER_CLASS(VisualScriptCondition);
-		GDREGISTER_CLASS(VisualScriptWhile);
-		GDREGISTER_CLASS(VisualScriptIterator);
-		GDREGISTER_CLASS(VisualScriptSequence);
-		//GDREGISTER_CLASS(VisualScriptInputFilter);
-		GDREGISTER_CLASS(VisualScriptSwitch);
-		GDREGISTER_CLASS(VisualScriptSelect);
+		ClassDB::register_class<VisualScriptReturn>();
+		ClassDB::register_class<VisualScriptCondition>();
+		ClassDB::register_class<VisualScriptWhile>();
+		ClassDB::register_class<VisualScriptIterator>();
+		ClassDB::register_class<VisualScriptSequence>();
+		//ClassDB::register_class<VisualScriptInputFilter>();
+		ClassDB::register_class<VisualScriptSwitch>();
+		ClassDB::register_class<VisualScriptSelect>();
 
-		GDREGISTER_CLASS(VisualScriptYield);
-		GDREGISTER_CLASS(VisualScriptYieldSignal);
+		ClassDB::register_class<VisualScriptYield>();
+		ClassDB::register_class<VisualScriptYieldSignal>();
 
-		GDREGISTER_CLASS(VisualScriptBuiltinFunc);
+		ClassDB::register_class<VisualScriptBuiltinFunc>();
 
-		GDREGISTER_CLASS(VisualScriptExpression);
+		ClassDB::register_class<VisualScriptExpression>();
 
 		register_visual_script_nodes();
 		register_visual_script_func_nodes();
@@ -129,7 +125,7 @@ void initialize_visual_script_module(ModuleInitializationLevel p_level) {
 #ifdef TOOLS_ENABLED
 	if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
 		ClassDB::set_current_api(ClassDB::API_EDITOR);
-		GDREGISTER_CLASS(VisualScriptCustomNodes);
+		ClassDB::register_class<VisualScriptCustomNodes>();
 		ClassDB::set_current_api(ClassDB::API_CORE);
 		vs_custom_nodes_singleton = memnew(VisualScriptCustomNodes);
 		Engine::get_singleton()->add_singleton(Engine::Singleton("VisualScriptCustomNodes", VisualScriptCustomNodes::get_singleton()));
@@ -159,12 +155,11 @@ void uninitialize_visual_script_module(ModuleInitializationLevel p_level) {
 	}
 #endif
 }
-#ifdef GDEXTENSION
 extern "C" {
 
 // Initialization.
 
-GDNativeBool GDN_EXPORT example_library_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
+GDNativeBool GDN_EXPORT visual_scripting_module_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization) {
         godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
         init_obj.register_initializer(initialize_visual_script_module);
@@ -173,5 +168,6 @@ GDNativeBool GDN_EXPORT example_library_init(const GDNativeInterface *p_interfac
 
         return init_obj.init();
 }
+
+
 }
-#endif

@@ -30,9 +30,9 @@
 
 #include "visual_script_yield_nodes.h"
 
-#include "core/os/os.h"
-#include "scene/main/node.h"
-#include "scene/main/scene_tree.h"
+#include <godot_cpp/classes/os.hpp>
+#include <godot_cpp/classes/node.hpp>
+#include <godot_cpp/classes/scene_tree.hpp>
 #include "visual_script_nodes.h"
 
 //////////////////////////////////////////
@@ -99,7 +99,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return false; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (p_start_mode == START_MODE_RESUME_YIELD) {
 			return 0; //resuming yield
 		} else {
@@ -108,7 +108,7 @@ public:
 			SceneTree *tree = Object::cast_to<SceneTree>(OS::get_singleton()->get_main_loop());
 			if (!tree) {
 				r_error_str = "Main Loop is not SceneTree";
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+				r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 				return 0;
 			}
 
@@ -510,7 +510,7 @@ public:
 	//virtual bool is_output_port_unsequenced(int p_idx) const { return false; }
 	//virtual bool get_output_port_unsequenced(int p_idx,Variant* r_value,Variant* p_working_mem,String &r_error) const { return true; }
 
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) override {
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) override {
 		if (p_start_mode == START_MODE_RESUME_YIELD) {
 			return 0; //resuming yield
 		} else {
@@ -526,14 +526,14 @@ public:
 				case VisualScriptYieldSignal::CALL_MODE_NODE_PATH: {
 					Node *node = Object::cast_to<Node>(instance->get_owner_ptr());
 					if (!node) {
-						r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+						r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 						r_error_str = "Base object is not a Node!";
 						return 0;
 					}
 
 					Node *another = node->get_node(node_path);
 					if (!another) {
-						r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+						r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 						r_error_str = "Path does not lead Node!";
 						return 0;
 					}
@@ -544,7 +544,7 @@ public:
 				case VisualScriptYieldSignal::CALL_MODE_INSTANCE: {
 					object = *p_inputs[0];
 					if (!object) {
-						r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
+						r_error.error = CALL_ERROR_TYPE::Error::CALL_ERROR_INVALID_METHOD;
 						r_error_str = "Supplied instance input is null.";
 						return 0;
 					}

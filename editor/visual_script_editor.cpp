@@ -253,9 +253,9 @@ protected:
 			Variant::Type type = (Variant::Type)(int)p_value;
 			if (type != Variant::NIL) {
 				Variant default_value;
-				Callable::CallError ce;
+				CALL_ERROR_TYPE ce;
 				Variant::construct(type, default_value, nullptr, 0, ce);
-				if (ce.error == Callable::CallError::CALL_OK) {
+				if (ce.error == CALL_ERROR_TYPE::Error::CALL_OK) {
 					undo_redo->add_do_method(script.ptr(), "set_variable_default_value", var, default_value);
 					undo_redo->add_undo_method(script.ptr(), "set_variable_default_value", var, dc["value"]);
 				}
@@ -898,7 +898,7 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 					if (value.get_type() != left_type) {
 						//different type? for now convert
 						//not the same, reconvert
-						Callable::CallError ce;
+						CALL_ERROR_TYPE ce;
 						const Variant *existingp = &value;
 						Variant::construct(left_type, value, &existingp, 1, ce);
 					}
@@ -1231,7 +1231,7 @@ String VisualScriptEditor::_sanitized_variant_text(const StringName &property_na
 	Variant var = script->get_variable_default_value(property_name);
 
 	if (script->get_variable_info(property_name).type != Variant::NIL) {
-		Callable::CallError ce;
+		CALL_ERROR_TYPE ce;
 		const Variant *converted = &var;
 		Variant n;
 		Variant::construct(script->get_variable_info(property_name).type, n, &converted, 1, ce);
@@ -3941,7 +3941,7 @@ void VisualScriptEditor::_default_value_edited(Node *p_button, int p_id, int p_i
 	PropertyInfo pinfo = vsn->get_input_value_port_info(p_input_port);
 	Variant existing = vsn->get_default_input_value(p_input_port);
 	if (pinfo.type != Variant::NIL && existing.get_type() != pinfo.type) {
-		Callable::CallError ce;
+		CALL_ERROR_TYPE ce;
 		Variant e = existing;
 		const Variant *existingp = &e;
 		Variant::construct(pinfo.type, existing, &existingp, 1, ce);

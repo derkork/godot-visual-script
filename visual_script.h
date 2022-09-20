@@ -31,12 +31,17 @@
 #ifndef VISUAL_SCRIPT_H
 #define VISUAL_SCRIPT_H
 
-#ifdef GDEXTENSION
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
-#include <godot_cpp/classes/script.hpp>
+#include <godot_cpp/variant/variant.hpp>
+#include <godot_cpp/classes/thread.hpp>
+#include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
+#include <godot_cpp/classes/engine_debugger.hpp>
+#include <godot_cpp/classes/mutex.hpp>
+#include <godot_cpp/classes/os.hpp>
+
 
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/list.hpp>
@@ -44,26 +49,20 @@
 #include <godot_cpp/templates/rb_set.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
+// TODO: get rid of this
+#include "hacks.h"
+
 using namespace godot;
 
 #define RES_BASE_EXTENSION(ext)
 
-// TODO This will need more work than just this.
-#define ScriptLanguage ScriptLanguageExtension
+
 
 // TODO ScriptInstance (via C struct: GDNativeExtensionScriptInstanceInfo, see gdnative_interface.h).
 class ScriptInstance {
 
 };
 
-#else
-#include "core/debugger/engine_debugger.h"
-#include "core/debugger/script_debugger.h"
-#include "core/doc_data.h"
-#include "core/object/script_language.h"
-#include "core/os/thread.h"
-#include "core/templates/rb_set.h"
-#endif
 
 class VisualScriptInstance;
 class VisualScriptNodeInstance;
@@ -115,7 +114,8 @@ public:
 	void set_breakpoint(bool p_breakpoint);
 	bool is_breakpoint() const;
 
-	virtual VisualScriptNodeInstance *instantiate(VisualScriptInstance *p_instance) { return nullptr; }
+    virtual void reset_state();
+    virtual VisualScriptNodeInstance *instantiate(VisualScriptInstance *p_instance) { return nullptr; }
 
 	struct TypeGuess {
 		Variant::Type type = Variant::NIL;
@@ -181,8 +181,7 @@ public:
 
 	virtual int get_working_memory_size() const { return 0; }
 
-	// TODO What to do with Callable::CallError ? Add to godot-cpp? Does it make sense? Is it exposed to extensions?
-	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, Callable::CallError &r_error, String &r_error_str) = 0; // Do a step, return which sequence port to go out.
+	virtual int step(const Variant **p_inputs, Variant **p_outputs, StartMode p_start_mode, Variant *p_working_mem, CALL_ERROR_TYPE &r_error, String &r_error_str) = 0; // Do a step, return which sequence port to go out.
 
 	Ref<VisualScriptNode> get_base_node() { return Ref<VisualScriptNode>(base); }
 
@@ -190,7 +189,7 @@ public:
 	virtual ~VisualScriptNodeInstance();
 };
 
-class VisualScript : public Script {
+class VisualScript : public ScriptExtension {
 	GDCLASS(VisualScript, Script);
 
 	RES_BASE_EXTENSION("vs");
@@ -287,7 +286,7 @@ protected:
 	static void _bind_methods();
 
 public:
-	bool inherits_script(const Ref<Script> &p_script) const override;
+	bool _inherits_script(const Ref<Script> &p_script) const override;
 
 	void set_scroll(const Vector2 &p_scroll);
 	Vector2 get_scroll() const;
@@ -354,17 +353,17 @@ public:
 
 	void set_instance_base_type(const StringName &p_type);
 
-	virtual bool can_instantiate() const override;
+	virtual bool _can_instantiate() const override;
 
-	virtual Ref<Script> get_base_script() const override;
-	virtual StringName get_instance_base_type() const override;
-	virtual ScriptInstance *instance_create(Object *p_this) override;
-	virtual bool instance_has(const Object *p_this) const override;
+	virtual Ref<Script> _get_base_script() const override;
+	virtual StringName _get_instance_base_type() const override;
+	virtual void *_instance_create(Object *p_this) const override;
+	virtual bool _instance_has(Object *p_this) const override;
 
-	virtual bool has_source_code() const override;
-	virtual String get_source_code() const override;
-	virtual void set_source_code(const String &p_code) override;
-	virtual Error reload(bool p_keep_state = false) override;
+	virtual bool _has_source_code() const override;
+	virtual String _get_source_code() const override;
+	virtual void _set_source_code(const String &p_code) override;
+	virtual Error _reload(bool p_keep_state = false) override;
 
 #ifdef TOOLS_ENABLED
 	virtual Vector<DocData::ClassDoc> get_documentation() const override {
@@ -373,25 +372,25 @@ public:
 	}
 #endif // TOOLS_ENABLED
 
-	virtual bool is_tool() const override;
-	virtual bool is_valid() const override;
+	virtual bool _is_tool() const override;
+	virtual bool _is_valid() const override;
 
-	virtual ScriptLanguage *get_language() const override;
+	virtual ScriptLanguageExtension *_get_language() const override;
 
-	virtual bool has_script_signal(const StringName &p_signal) const override;
-	virtual void get_script_signal_list(List<MethodInfo> *r_signals) const override;
+	virtual bool _has_script_signal(const StringName &p_signal) const override;
+	virtual Array _get_script_signal_list() const override;
 
-	virtual bool get_property_default_value(const StringName &p_property, Variant &r_value) const override;
-	virtual void get_script_method_list(List<MethodInfo> *p_list) const override;
+    virtual Variant _get_property_default_value(const StringName &property) const override;
+	virtual Array _get_script_method_list() const override;
 
-	virtual bool has_method(const StringName &p_method) const override;
-	virtual MethodInfo get_method_info(const StringName &p_method) const override;
+	virtual bool _has_method(const StringName &p_method) const override;
+	virtual Dictionary _get_method_info(const StringName &p_method) const override;
 
-	virtual void get_script_property_list(List<PropertyInfo> *p_list) const override;
+	virtual Array _get_script_property_list() const override;
 
-	virtual int get_member_line(const StringName &p_member) const override;
+	virtual int64_t _get_member_line(const StringName &p_member) const override;
 
-	virtual const Variant get_rpc_config() const override;
+	virtual const Variant _get_rpc_config() const override;
 
 #ifdef TOOLS_ENABLED
 	virtual bool are_subnodes_edited() const;
@@ -426,8 +425,8 @@ class VisualScriptInstance : public ScriptInstance {
 
 	StringName source;
 
-	void _dependency_step(VisualScriptNodeInstance *node, int p_pass, int *pass_stack, const Variant **input_args, Variant **output_args, Variant *variant_stack, Callable::CallError &r_error, String &error_str, VisualScriptNodeInstance **r_error_node);
-	Variant _call_internal(const StringName &p_method, void *p_stack, int p_stack_size, VisualScriptNodeInstance *p_node, int p_flow_stack_pos, int p_pass, bool p_resuming_yield, Callable::CallError &r_error);
+	void _dependency_step(VisualScriptNodeInstance *node, int p_pass, int *pass_stack, const Variant **input_args, Variant **output_args, Variant *variant_stack, CALL_ERROR_TYPE &r_error, String &error_str, VisualScriptNodeInstance **r_error_node);
+	Variant _call_internal(const StringName &p_method, void *p_stack, int p_stack_size, VisualScriptNodeInstance *p_node, int p_flow_stack_pos, int p_pass, bool p_resuming_yield, CALL_ERROR_TYPE &r_error);
 
 	friend class VisualScriptFunctionState; // For yield.
 	friend class VisualScriptLanguage; // For debugger.
@@ -442,7 +441,7 @@ public:
 
 	virtual void get_method_list(List<MethodInfo> *p_list) const;
 	virtual bool has_method(const StringName &p_method) const;
-	virtual Variant callp(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
+	virtual Variant callp(const StringName &p_method, const Variant **p_args, int p_argcount, CALL_ERROR_TYPE &r_error);
 	virtual void notification(int p_notification);
 	String to_string(bool *r_valid);
 
@@ -496,7 +495,7 @@ class VisualScriptFunctionState : public RefCounted {
 	int flow_stack_pos = 0;
 	int pass = 0;
 
-	Variant _signal_callback(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
+	Variant _signal_callback(const Variant **p_args, int p_argcount, CALL_ERROR_TYPE &r_error);
 
 protected:
 	static void _bind_methods();
@@ -511,7 +510,7 @@ public:
 
 typedef Ref<VisualScriptNode> (*VisualScriptNodeRegisterFunc)(const String &p_type);
 
-class VisualScriptLanguage : public ScriptLanguage {
+class VisualScriptLanguage : public ScriptLanguageExtension {
 	HashMap<String, VisualScriptNodeRegisterFunc> register_funcs;
 
 	struct CallLevel {
@@ -543,7 +542,7 @@ public:
 	bool debug_break_parse(const String &p_file, int p_node, const String &p_error);
 
 	_FORCE_INLINE_ void enter_function(VisualScriptInstance *p_instance, const StringName *p_function, Variant *p_stack, Variant **p_work_mem, int *current_id) {
-		if (Thread::get_main_id() != Thread::get_caller_id()) {
+		if (OS::get_singleton()->get_main_thread_id() != OS::get_singleton()->get_thread_caller_id()) {
 			return; // No support for other threads than main for now.
 		}
 
@@ -567,7 +566,7 @@ public:
 	}
 
 	_FORCE_INLINE_ void exit_function() {
-		if (Thread::get_main_id() != Thread::get_caller_id()) {
+        if (OS::get_singleton()->get_main_thread_id() != OS::get_singleton()->get_thread_caller_id()) {
 			return; // No support for other threads than main for now.
 		}
 
@@ -586,57 +585,57 @@ public:
 
 	//////////////////////////////////////
 
-	virtual String get_name() const override;
+	virtual String _get_name() const override;
 
 	/* LANGUAGE FUNCTIONS */
-	virtual void init() override;
-	virtual String get_type() const override;
-	virtual String get_extension() const override;
-	virtual Error execute_file(const String &p_path) override;
-	virtual void finish() override;
+	virtual void _init() override;
+	virtual String _get_type() const override;
+	virtual String _get_extension() const override;
+	virtual Error _execute_file(const String &p_path) override;
+	virtual void _finish() override;
 
 	/* EDITOR FUNCTIONS */
-	virtual void get_reserved_words(List<String> *p_words) const override;
-	virtual bool is_control_flow_keyword(String p_keyword) const override;
-	virtual void get_comment_delimiters(List<String> *p_delimiters) const override;
-	virtual void get_string_delimiters(List<String> *p_delimiters) const override;
-	virtual bool is_using_templates() override;
-	virtual Ref<Script> make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
-	virtual bool validate(const String &p_script, const String &p_path = "", List<String> *r_functions = nullptr, List<ScriptLanguage::ScriptError> *r_errors = nullptr, List<ScriptLanguage::Warning> *r_warnings = nullptr, HashSet<int> *r_safe_lines = nullptr) const override;
-	virtual Script *create_script() const override;
-	virtual bool has_named_classes() const override;
-	virtual bool supports_builtin_mode() const override;
-	virtual int find_function(const String &p_function, const String &p_code) const override;
-	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const override;
-	virtual void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const override;
-	virtual void add_global_constant(const StringName &p_variable, const Variant &p_value) override;
+	virtual PackedStringArray _get_reserved_words() const override;
+	virtual bool _is_control_flow_keyword(const String &p_keyword) const override;
+	virtual PackedStringArray _get_comment_delimiters() const override;
+	virtual PackedStringArray _get_string_delimiters() const override;
+	virtual bool _is_using_templates() override;
+    virtual Ref<Script> _make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
+    virtual Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override;
+    virtual Object *_create_script() const override;
+	virtual bool _has_named_classes() const override;
+	virtual bool _supports_builtin_mode() const override;
+	virtual int64_t _find_function(const String &p_function, const String &p_code) const override;
+	virtual String _make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const override;
+    virtual String _auto_indent_code(const String &code, int64_t from_line, int64_t to_line) const;
+	virtual void _add_global_constant(const StringName &p_variable, const Variant &p_value) override;
 
 	/* DEBUGGER FUNCTIONS */
 
-	virtual String debug_get_error() const override;
-	virtual int debug_get_stack_level_count() const override;
-	virtual int debug_get_stack_level_line(int p_level) const override;
-	virtual String debug_get_stack_level_function(int p_level) const override;
-	virtual String debug_get_stack_level_source(int p_level) const override;
-	virtual void debug_get_stack_level_locals(int p_level, List<String> *p_locals, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override;
-	virtual void debug_get_stack_level_members(int p_level, List<String> *p_members, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override;
-	virtual void debug_get_globals(List<String> *p_locals, List<Variant> *p_values, int p_max_subitems = -1, int p_max_depth = -1) override;
-	virtual String debug_parse_stack_level_expression(int p_level, const String &p_expression, int p_max_subitems = -1, int p_max_depth = -1) override;
+	virtual String _debug_get_error() const override;
+	virtual int64_t _debug_get_stack_level_count() const override;
+	virtual int64_t _debug_get_stack_level_line(int64_t p_level) const override;
+	virtual String _debug_get_stack_level_function(int64_t p_level) const override;
+	virtual String _debug_get_stack_level_source(int64_t p_level) const;
+    virtual Dictionary _debug_get_stack_level_locals(int64_t level, int64_t max_subitems, int64_t max_depth) override;
+    virtual Dictionary _debug_get_stack_level_members(int64_t level, int64_t max_subitems, int64_t max_depth) override;
+    virtual Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth) override;
+	virtual String _debug_parse_stack_level_expression(int64_t p_level, const String &p_expression, int64_t p_max_subitems = -1, int64_t p_max_depth = -1) override;
 
-	virtual void reload_all_scripts() override;
-	virtual void reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
+	virtual void _reload_all_scripts() override;
+	virtual void _reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
 	/* LOADER FUNCTIONS */
 
-	virtual void get_recognized_extensions(List<String> *p_extensions) const override;
-	virtual void get_public_functions(List<MethodInfo> *p_functions) const override;
-	virtual void get_public_constants(List<Pair<String, Variant>> *p_constants) const override;
-	virtual void get_public_annotations(List<MethodInfo> *p_annotations) const override;
+	virtual PackedStringArray _get_recognized_extensions() const override;
+	virtual Array _get_public_functions() const override;
+	virtual Dictionary _get_public_constants() const override;
+	virtual void get_public_annotations(List<MethodInfo> *p_annotations) const;
 
-	virtual void profiling_start() override;
-	virtual void profiling_stop() override;
+	virtual void _profiling_start() override;
+	virtual void _profiling_stop() override;
 
-	virtual int profiling_get_accumulated_data(ProfilingInfo *p_info_arr, int p_info_max) override;
-	virtual int profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max) override;
+    virtual int64_t _profiling_get_accumulated_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
+    virtual int64_t _profiling_get_frame_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
 
 	void add_register_func(const String &p_name, VisualScriptNodeRegisterFunc p_func);
 	void remove_register_func(const String &p_name);
